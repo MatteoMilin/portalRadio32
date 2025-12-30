@@ -5,10 +5,11 @@
 #define PIN_A         25
 #define PIN_B         26
 #define PIN_SW        27
-#define MIN_FREQUENCY 87000
-#define MAX_FREQUENCY 107000
 
-volatile int frequency = 104400;
+#define MIN_FREQUENCY 87.0F
+#define MAX_FREQUENCY 107.0F
+
+volatile float frequency = 99.4F;
 volatile bool encoderUpdated = false;
 volatile unsigned long lastInterruptTime = 0;
 
@@ -21,7 +22,7 @@ void IRAM_ATTR handleEncoder()
 {
     unsigned long currentTime = micros();
 
-    if (currentTime - lastInterruptTime < 1000) {
+    if (currentTime - lastInterruptTime < 5000) {
         return;
     }
     lastInterruptTime = currentTime;
@@ -33,10 +34,10 @@ void IRAM_ATTR handleEncoder()
     uint8_t sum = (lastEncoded << 2) | encoded;
 
     if (sum == 0b1101 || sum == 0b0100) {
-        frequency = min(frequency + 100, MAX_FREQUENCY);
+        frequency = min(frequency + 0.1F, MAX_FREQUENCY);
         encoderUpdated = true;
     } else if (sum == 0b1110 || sum == 0b0111) {
-        frequency = max(frequency - 100, MIN_FREQUENCY);
+        frequency = max(frequency - 0.1F, MIN_FREQUENCY);
         encoderUpdated = true;
     }
 
@@ -50,8 +51,8 @@ void setup()
     lcd.backlight();
     lcd.setCursor(0, 0);
     lcd.print("Freq: ");
-    lcd.print(frequency / 1000.0f, 1);
-    lcd.print(" kHz");
+    lcd.print(frequency, 1);
+    lcd.print(" MHz");
 
     // Encoder initialization
     pinMode(PIN_A, INPUT_PULLUP);
@@ -67,7 +68,7 @@ void setup()
     radio.setHighCutControlOn();
     radio.setSoftMuteOn();
     radio.setSearchHighStopLevel();
-    radio.selectFrequency(frequency / 100.0f);
+    radio.selectFrequency(frequency);
 }
 
 void loop()
@@ -76,18 +77,16 @@ void loop()
         encoderUpdated = false;
         lcd.setCursor(0, 0);
         lcd.print("Freq: ");
-        lcd.print(frequency / 1000.0f, 1);
-        lcd.print(" kHz   ");
-        radio.selectFrequency(frequency / 100.0f);
+        lcd.print(frequency, 1);
+        lcd.print(" MHz   ");
+        radio.selectFrequency(frequency);
     }
 
     if (digitalRead(PIN_SW) == LOW) {
-        lcd.setCursor(0, 1);
-        lcd.print("Bouton appuye   ");
+        // le bouton il est pressé
         delay(200);
     } else {
-        lcd.setCursor(0, 1);
-        lcd.print("                ");
+        // le bouton il est pas pressé
     }
-    delay(100);
+    delay(50);
 }
