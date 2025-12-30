@@ -2,13 +2,13 @@
 #include <Arduino.h>
 #include <TEA5767N.h>
 
-#define PIN_A  25
-#define PIN_B  26
-#define PIN_SW 27
+#define PIN_A         25
+#define PIN_B         26
+#define PIN_SW        27
 #define MIN_FREQUENCY 87000
 #define MAX_FREQUENCY 107000
 
-volatile int frequency = 104500;
+volatile int frequency = 104400;
 volatile bool encoderUpdated = false;
 volatile unsigned long lastInterruptTime = 0;
 
@@ -50,7 +50,8 @@ void setup()
     lcd.backlight();
     lcd.setCursor(0, 0);
     lcd.print("Freq: ");
-    lcd.print(frequency);
+    lcd.print(frequency / 1000.0f, 1);
+    lcd.print(" kHz");
 
     // Encoder initialization
     pinMode(PIN_A, INPUT_PULLUP);
@@ -75,8 +76,8 @@ void loop()
         encoderUpdated = false;
         lcd.setCursor(0, 0);
         lcd.print("Freq: ");
-        lcd.print(frequency);
-        lcd.print(" Mhz   ");
+        lcd.print(frequency / 1000.0f, 1);
+        lcd.print(" kHz   ");
         radio.selectFrequency(frequency / 100.0f);
     }
 
@@ -88,4 +89,5 @@ void loop()
         lcd.setCursor(0, 1);
         lcd.print("                ");
     }
+    delay(100);
 }
